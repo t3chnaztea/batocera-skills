@@ -63,6 +63,35 @@ which name the key is actually keyed on (check `es_launch_stdout.log` for the
 launch's system/emulator/core) rather than assuming the rom-dir name is the
 scope. See `batocera-tuning` for a worked overclock-scope example.
 
+## es_features.cfg: the catalog of valid setting keys
+
+Don't guess emulator setting keys. `batocera.conf` accepts any `key=value`
+line, so a misspelled or invented key fails **silently** — no error, no effect.
+The OS ships the authoritative catalog at
+`/usr/share/emulationstation/es_features.cfg` (read-only rootfs, ~12k lines):
+every tunable feature per emulator/core, with the exact conf-key suffix and the
+values it accepts.
+
+Structure: `<emulator name="…">` blocks containing
+`<feature name="HUMAN LABEL" value="<conf-key-suffix>">` with `<choice>`
+children enumerating valid values. The `value` attribute is exactly the string
+configgen reads — prefix it with the system name and you have your conf key:
+
+```bash
+# what graphics-API values does standalone PCSX2 accept?
+grep -A6 'value="pcsx2_gfxbackend"' /usr/share/emulationstation/es_features.cfg
+#   <choice name="OpenGL"   value="12" />
+#   <choice name="Software" value="13" />
+#   <choice name="Vulkan"   value="14" />
+```
+
+So "switch PS2 to OpenGL" is `ps2.pcsx2_gfxbackend=12`. Two lessons in one
+lookup: the file gives the real key name (`pcsx2_gfxbackend`, not
+`gfxbackend`), and the accepted values — which are often opaque enums like
+`12`, not the human-readable choice name. Check this file before proposing any
+emulator-specific key; verify after a launch by reading the generated config as
+usual.
+
 ## Worked example: a setting that won't stick
 
 Symptom: you pick a palette / shader / option in the in-game RetroArch quick

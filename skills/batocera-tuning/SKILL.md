@@ -4,11 +4,14 @@ description: >-
   Use when a Batocera cabinet feels slow, laggy, or stuttery, or when tuning
   performance: EmulationStation menu/carousel lag, a slow-since-boot frontend,
   CPU governor stuck in powersave, overclock or CPU-speed core options that seem
-  to do nothing, run-ahead / input latency, or framerate that drops the longer
-  the machine runs. Covers the diagnostic order (check the throttle first), the
-  v43 governor-at-boot failure, the emulator-name vs rom-dir-name overclock
-  scoping trap, and ES event-hook frame cost. Not for shader visual quality
-  (batocera-display).
+  to do nothing, run-ahead / input latency, framerate that drops the longer
+  the machine runs, or a 3D-heavy game (PSX/PS2/Dreamcast/N64 class) that
+  crashes or stutters — Vulkan errors in emulator logs, picking a rendering
+  resolution or graphics backend the hardware can afford. Covers the diagnostic
+  order (check the throttle first), the v43 governor-at-boot failure, the
+  emulator-name vs rom-dir-name overclock scoping trap, ES event-hook frame
+  cost, and hardware-tier detection (batocera-info / batocera-vulkan). Not for
+  shader visual quality (batocera-display).
 compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
 ---
 
@@ -114,6 +117,51 @@ a 60 fps menu down to single digits after a while. Diagnosing it:
   instead of installing an ES event hook. Trap: some agents/services *rewrite*
   their hooks on every boot/start — remove the service/agent that installs them,
   not just the hook files, or they reappear next boot.
+
+## Tuning 3D-heavy games (PSX, PS2, Dreamcast, N64 class)
+
+Graphics tuning only pays off on 3D systems whose emulators expose rendering
+levers. 8/16-bit libretro systems render native-res for pennies — they have no
+resolution or backend knobs worth touching, and "tuning" them means frameskip
+or the overclock keys above. Don't burn a session tuning a 2D system.
+
+**Know the hardware before proposing values.** One command each:
+
+```bash
+SSHB "batocera-info"        # CPU model/cores, RAM, display resolution
+SSHB "batocera-vulkan hasVulkan; batocera-vulkan hasDiscrete; batocera-vulkan listDevices"
+```
+
+An iGPU-only box (`hasDiscrete` false) and a discrete-GPU box want different
+defaults; find out which you're on before copying settings from a forum post.
+
+**The two levers, in order:**
+
+1. **Internal resolution scale** — the dominant cost knob on 3D emulators
+   (`duckstation_resolution_scale`, `pcsx2_resolution`,
+   `flycast_render_resolution`, …). Each step multiplies fill-rate cost; on an
+   iGPU, 1x-2x native is realistic and forum-copied 4x+ is not.
+2. **Graphics backend** — Vulkan vs OpenGL. On Intel iGPUs Vulkan is a common
+   *stability* problem, not just a performance choice (see the table below).
+
+Discover the exact key names and accepted values per emulator in
+`es_features.cfg` (`batocera-ops` → batocera-conf reference) rather than
+guessing — values can be opaque enums (PCSX2 OpenGL is
+`ps2.pcsx2_gfxbackend=12`).
+
+**Crash and slowdown patterns** in the emulator logs under
+`/userdata/system/logs/` (read `es_launch_stdout.log` first to see which
+emulator/core actually ran):
+
+| Log pattern | Likely cause | First fix |
+|---|---|---|
+| `VK_ERROR_*`, `vkQueueSubmit` failure, device lost | Vulkan instability, esp. on Intel iGPUs | Switch that emulator's backend to OpenGL |
+| `std::bad_alloc`, OOM-killer hit in `dmesg` | Resolution scale / texture cost beyond memory | Drop resolution scale one step |
+| Slowdown or audio crackle, no crash | GPU fill-rate saturated | Drop resolution scale before reaching for frameskip |
+
+Scope fixes per game where one heavy title is the problem
+(`psx["Game (USA).chd"].duckstation_gfxbackend=…`) rather than degrading the
+whole system for it.
 
 ## Run-ahead and input latency
 

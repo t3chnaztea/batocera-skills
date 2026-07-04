@@ -90,6 +90,25 @@ FILE "game.bin" BINARY
 - `.bin`/`.cue` pairs are handled by the emulator automatically; you don't need
   an `.m3u` for a single multi-track disc.
 
+## Filenames lie; disc serials don't
+
+PSX and PS2 disc images carry a canonical ID no rename can corrupt: the serial
+in `SYSTEM.CNF` at the ISO9660 root (`BOOT = cdrom:SLUS_006.14` → serial
+SLUS-00614). On plain `.bin`/`.iso` images it's plaintext-greppable, no
+mounting or extraction needed:
+
+```bash
+grep -a -m1 -oE 'BOOT2? *= *cdrom0?:[^;]*' "Azure Dreams (USA).bin"
+# BOOT = cdrom:SLUS_006.14
+```
+
+(PSX uses `BOOT = cdrom:…`; PS2 uses `BOOT2 = cdrom0:\…`; the pattern above
+matches both.) This does **not** work on `.chd` — it's a compressed container,
+so the grep silently finds nothing; extract first (`chdman extractcd`) or grep
+the source `.bin`. Reach for the serial when you need identity stronger than a
+filename: matching dumps against Redump DATs, deduping renamed copies, or
+confirming that "Game (USA) (Rev 1)" really is the revision its name claims.
+
 ## Cave CV1000 lives in `cave3rd`
 
 The Cave CV1000 shmup system's directory is **`cave3rd`**, not `cv1000` (which

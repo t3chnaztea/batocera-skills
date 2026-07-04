@@ -88,6 +88,7 @@ wait a few seconds and retry rather than assuming the password is wrong.
 | `/userdata/shaders/` | User shader presets and configs |
 | `/userdata/saves/` | Emulator save states and SRAM |
 | `/userdata/bios/` | BIOS files |
+| `/usr/share/emulationstation/es_features.cfg` | Catalog of valid per-emulator setting keys + values (read-only; see batocera-conf reference) |
 | `/userdata/screenshots/` | Where `batocera-screenshot` writes |
 
 `batocera-conf` precedence, the configgen regeneration model, and where a
