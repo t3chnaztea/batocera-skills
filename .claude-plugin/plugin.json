@@ -1,0 +1,20 @@
+{
+  "name": "batocera",
+  "version": "1.0.0",
+  "description": "Agent skills for operating a Batocera retro-gaming cabinet over SSH: connection and safety doctrine, ROM and gamelist curation, shaders and bezels, performance tuning, and maintenance. Distilled from twelve months of running a real arcade cabinet with coding agents.",
+  "author": {
+    "name": "tech nasty"
+  },
+  "homepage": "https://github.com/t3chnaztea/batocera-skills",
+  "repository": "https://github.com/t3chnaztea/batocera-skills",
+  "license": "MIT",
+  "keywords": [
+    "batocera",
+    "retro-gaming",
+    "emulation",
+    "retroarch",
+    "emulationstation",
+    "arcade",
+    "agent-skills"
+  ]
+}

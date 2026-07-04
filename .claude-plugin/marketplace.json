@@ -1,0 +1,25 @@
+{
+  "name": "t3chnaztea",
+  "description": "Agent skills and tools for retro-gaming and home-lab tinkering.",
+  "owner": {
+    "name": "tech nasty"
+  },
+  "plugins": [
+    {
+      "name": "batocera",
+      "source": "./",
+      "description": "Agent skills for operating a Batocera retro-gaming cabinet over SSH.",
+      "category": "retro-gaming",
+      "tags": [
+        "batocera",
+        "retro-gaming",
+        "emulation",
+        "retroarch",
+        "emulationstation",
+        "arcade",
+        "ssh",
+        "agent-skills"
+      ]
+    }
+  ]
+}
