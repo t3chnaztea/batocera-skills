@@ -1,30 +1,62 @@
 <!-- insert coin to continue -->
 
-# batocera-skills
+<p align="center">
+  <img src="./media/hero.png" alt="batocera-skills — agent skills for running a real arcade cabinet" width="840">
+</p>
 
-**Twelve months of babysitting a real arcade cabinet with coding agents, distilled
-into agent skills.**
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00e5ff" alt="MIT license"></a>
+  <a href="https://github.com/t3chnaztea/batocera-skills/releases"><img src="https://img.shields.io/github/v/release/t3chnaztea/batocera-skills?color=ff2e97" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/skills-5-ffcc00" alt="5 skills">
+  <img src="https://img.shields.io/badge/Batocera-v41%20to%20v43-8a2be2" alt="Batocera v41 to v43">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-d97706" alt="Claude Code plugin">
+</p>
 
-[Batocera](https://batocera.org) is a fantastic retro-gaming distro, but
-operating a cabinet day to day — curating a big library, aligning bezels,
-keeping the frontend fast, surviving upgrades — accumulates a pile of
-hard-won, wiki-doesn't-mention-it knowledge. This repo packages that knowledge
-as [Agent Skills](https://agentskills.io): focused, model-readable guides your
-coding agent (Claude Code and other harnesses) loads on demand when you ask it
-to work on your cabinet.
+<p align="center">
+  <b>Twelve months of babysitting a real arcade cabinet with coding agents, distilled into agent skills.</b>
+</p>
 
-Five skills, each a self-contained home for one area of cabinet work:
+> [Batocera](https://batocera.org) is a fantastic retro-gaming distro, but operating a cabinet day to day — curating a big library, aligning bezels, keeping the frontend fast, surviving upgrades — accumulates a pile of hard-won, wiki-doesn't-mention-it knowledge. This repo packages that knowledge as [Agent Skills](https://agentskills.io): focused, model-readable guides your coding agent (Claude Code and other harnesses) loads on demand when you ask it to work on your cabinet.
 
-| If you want to… | Skill |
-|---|---|
-| Connect over SSH, understand the read-only/`/userdata` layout, find configs and logs, verify a change end-to-end | **batocera-ops** (start here) |
-| Sort out ROM directories, fix games that won't appear, curate a big library by hiding not deleting, clean up multi-disc games, verify dumps | **batocera-roms** |
-| Assign shaders, align and generate bezels, fix moiré, pin the display mode | **batocera-display** |
-| Fix a slow/laggy frontend, the governor-stuck-in-powersave bug, overclock scoping, input latency | **batocera-tuning** |
-| Run jobs at boot without cron, back up `/userdata`, upgrade between major versions | **batocera-maintenance** |
+```
+/plugin marketplace add t3chnaztea/batocera-skills
+/plugin install batocera@t3chnaztea
+```
 
-`batocera-ops` is the foundation — the others assume its connection pattern,
-`batocera.conf`/configgen model, and safety doctrine.
+## The five skills
+
+Each is a self-contained home for one area of cabinet work. **Start with `batocera-ops`** — the others assume its connection pattern, `batocera.conf`/configgen model, and safety doctrine.
+
+<table>
+  <tr>
+    <td align="center" width="33%" valign="top">
+      <a href="skills/batocera-ops/SKILL.md"><b>🔌 batocera-ops</b></a><br />
+      <sub>Start here. SSH in, the read-only <code>/userdata</code> model, config/log paths, the safety doctrine, and the remote verify loop (launch + screenshot, no controller).</sub>
+    </td>
+    <td align="center" width="33%" valign="top">
+      <a href="skills/batocera-roms/SKILL.md"><b>💾 batocera-roms</b></a><br />
+      <sub>ROM directories, why a game won't appear, hide-not-delete curation, multi-disc cleanup, and dump verification against No-Intro / Redump DATs.</sub>
+    </td>
+    <td align="center" width="33%" valign="top">
+      <a href="skills/batocera-display/SKILL.md"><b>📺 batocera-display</b></a><br />
+      <sub>Shaders, bezel artwork and alignment, generating missing <code>.info</code> sidecars, fixing moiré, and pinning the display mode.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%" valign="top">
+      <a href="skills/batocera-tuning/SKILL.md"><b>⚡ batocera-tuning</b></a><br />
+      <sub>A slow/laggy frontend, the governor-stuck-in-powersave bug, overclock scoping, 3D-game rendering, and input latency.</sub>
+    </td>
+    <td align="center" width="33%" valign="top">
+      <a href="skills/batocera-maintenance/SKILL.md"><b>🛠️ batocera-maintenance</b></a><br />
+      <sub>Run jobs at boot without cron, back up <code>/userdata</code> over SSH, and survive major version upgrades.</sub>
+    </td>
+    <td align="center" width="33%" valign="top">
+      <a href="template/SKILL.md"><b>➕ contribute</b></a><br />
+      <sub>Got a hard-won lesson? Copy the template and open a PR. Original prose, host-parameterized, non-destructive.</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -118,6 +150,10 @@ is the source of truth. So is a screenshot of it running.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+> Not affiliated with the Batocera project. "Batocera" is used here descriptively;
+> this is an independent, community-built collection. The OS lives at
+> [batocera.org](https://batocera.org) and its wiki is the canonical manual.
 
 ---
 
