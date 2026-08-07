@@ -132,6 +132,11 @@ and follow its authoring notes: original prose (no wiki paste), parameterize
 anything host-specific (`$BATOCERA_HOST`, env-var secrets), non-destructive
 doctrine, and show the reader how to verify the change. PRs welcome.
 
+Every PR validates each `SKILL.md` against the
+[Agent Skills spec](https://agentskills.io/specification) via
+`.github/scripts/validate_skills.py`. Run the same check before you commit with
+`git config core.hooksPath .githooks`.
+
 ## More tiny tools for home labs
 
 Agent skills: [unifi](https://github.com/t3chnaztea/unifi-skills) · [home-assistant](https://github.com/t3chnaztea/home-assistant-skills) · [psn](https://github.com/t3chnaztea/awesome-psn-skills) · [arr-stack](https://github.com/t3chnaztea/arr-stack-skills)  
