@@ -71,6 +71,9 @@ its configuration.** That is exactly as powerful as it sounds.
 - **Change Batocera's default password.** Batocera ships with the well-known
   default `root` / `linux`. A box you SSH into as root should not keep a
   published password. Change it (ES → System Settings → Security, or `passwd`).
+  Then keep the new one out of the agent's context entirely:
+  [docs/secrets-hygiene.md](docs/secrets-hygiene.md) is the short version of
+  how, ending at an SSH key the agent never sees.
 - **The scripts mutate real files.** Every included script is `--dry-run`-first
   where it can delete, backs up configs/gamelists before editing, and is
   idempotent, but read the header and dry-run first anyway. They assume

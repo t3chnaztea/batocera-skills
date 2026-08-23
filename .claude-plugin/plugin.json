@@ -1,6 +1,6 @@
 {
   "name": "batocera",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Agent skills for operating a Batocera retro-gaming cabinet over SSH: connection and safety doctrine, ROM and gamelist curation, shaders and bezels, performance tuning, and maintenance. Distilled from twelve months of running a real arcade cabinet with coding agents.",
   "author": {
     "name": "tech nasty"
