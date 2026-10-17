@@ -47,8 +47,18 @@ def dupe_key(stem: str) -> str:
     """Region-insensitive title: '(USA)' vs '(USA, Europe)' must collide."""
     return re.sub(r"\s*\([^)]*\)", "", base_title(stem)).strip().lower()
 
-def disc_no(stem: str) -> int:
-    return int(re.search(r"\(Disc 0*(\d+)", stem).group(1))
+DISC_WORDS = {w: i for i, w in enumerate(
+    "one two three four five six seven eight nine ten".split(), 1)}
+
+def disc_no(stem: str) -> int | None:
+    """'(Disc 2)', '(Disc 02 of 4)', '(Disc B)', '(Disc Two)' -> 2; else None."""
+    m = re.search(r"\(Disc ([^)\s]+)", stem)
+    tok = m.group(1).lower() if m else ""
+    if tok.isdigit():
+        return int(tok)
+    if len(tok) == 1 and "a" <= tok <= "z":
+        return ord(tok) - ord("a") + 1
+    return DISC_WORDS.get(tok)
 
 def write_cue(bin_path: Path) -> Path:
     with bin_path.open("rb") as f:
@@ -62,6 +72,10 @@ def write_cue(bin_path: Path) -> Path:
 def main() -> None:
     discs = [p for p in ROMS.iterdir()
              if p.is_file() and DISC_RE.search(p.stem)]
+    # validate before touching the filesystem: skip discs we cannot number
+    for p in [p for p in discs if disc_no(p.stem) is None]:
+        print(f"  skip (unparseable disc number): {p.name}")
+        discs.remove(p)
 
     # --- 1. dedupe zips ---------------------------------------------------
     cue_bin_titles = {dupe_key(p.stem) for p in discs

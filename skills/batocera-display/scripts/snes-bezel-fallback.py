@@ -50,11 +50,12 @@ def main() -> None:
     block = [BEGIN]
     block.append("# system default: koko ambilight frame (no decoration)")
     block.append("snes.bezel=none")
-    n_art = n_fx = 0
+    n_art = n_fx = n_koko = 0
     for rom in roms:
         is_fx = rom.stem.startswith(FX_PREFIXES)
         has_art = rom.stem in art_stems
         if not (is_fx or has_art):
+            n_koko += 1
             continue  # system default covers it
         g = gsname(rom.name)
         if has_art:
@@ -72,8 +73,10 @@ def main() -> None:
     text = re.sub(rf"\n?{re.escape(BEGIN)}.*?{re.escape(END)}\n?", "\n",
                   text, flags=re.DOTALL)
     # system shader becomes the koko fallback
-    text = re.sub(r"^snes-renderer\.shader=.*$",
-                  f"snes-renderer.shader={KOKO}", text, flags=re.MULTILINE)
+    text, n_sys = re.subn(r"^snes-renderer\.shader=.*$",
+                          f"snes-renderer.shader={KOKO}", text, flags=re.MULTILINE)
+    if not n_sys:  # no system line to rewrite: carry it in the generated block
+        block.insert(3, f"snes-renderer.shader={KOKO}")
     # remove any dead glob lines
     text = re.sub(r'^snes\["[^"]*\*"\]-renderer\.shader=.*\n', "",
                   text, flags=re.MULTILINE)
@@ -85,7 +88,7 @@ def main() -> None:
     bak.write_bytes(CONF.read_bytes())
     CONF.write_text(text, encoding="utf-8")
     print(f"roms={len(roms)} with_tbp_art={n_art} fx_pinned={n_fx} "
-          f"fallback_to_koko={len(roms) - n_art - n_fx}")
+          f"fallback_to_koko={n_koko}")
     print(f"backup: {bak}")
 
 if __name__ == "__main__":

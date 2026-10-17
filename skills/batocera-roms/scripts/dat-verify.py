@@ -242,10 +242,9 @@ def hash_7z_rom(filepath):
         os.makedirs(tmp, exist_ok=True)
         subprocess.run([SEVENZ, "x", "-y", f"-o{tmp}", filepath],
                        capture_output=True, timeout=120)
-        for f in os.listdir(tmp):
-            fp = os.path.join(tmp, f)
-            if os.path.isfile(fp):
-                results.append((f, hash_file(fp)))
+        for dirpath, _, files in os.walk(tmp):  # ROM may sit in a subfolder
+            for f in sorted(files):
+                results.append((f, hash_file(os.path.join(dirpath, f))))
     except Exception as e:
         logging.warning(f"  7z read failed {filepath}: {e}")
     finally:
