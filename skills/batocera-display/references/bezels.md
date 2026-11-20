@@ -156,10 +156,14 @@ Fix per system:
 python3 reslice_bezel.py default.png systems/<system>.png 240 0 240 0
 ```
 
-Do not try to shrink the picture into a smaller opening with an emulator
-stretch or scale setting unless you screenshot the result. On one PCSX2-based
-arcade emulator a vertical stretch value below 100 made the game render in a
-small box in a screen corner.
+**Small picture in a screen corner.** If a standalone emulator shows the game
+as a 640x480 box in the bottom-left corner of a black screen on some launches
+and full screen on others, the bezel is not the cause. The window is full
+screen but the OpenGL renderer kept its start-up surface size. It happens with
+and without a bezel. On a PCSX2-based arcade emulator this hit 5 of 6 launches
+with the automatic (OpenGL) renderer and 0 of 6 with Vulkan, so set that
+system's graphics API to Vulkan. Test with several launches in a row and one
+screenshot each; a single good launch proves nothing.
 
 ## Mega-Bezel per-game cabinet art: a documented dead end
 
