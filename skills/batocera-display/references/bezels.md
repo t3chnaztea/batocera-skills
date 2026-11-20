@@ -92,6 +92,75 @@ shader to the Koko fallback, and backs up `batocera.conf` first. It's idempotent
 titles pinned to a different shader) with exact-filename keys. Adapt the paths
 and the "which ROMs have art" source to your pack.
 
+## Building a fallback bezel from a green-screen picture
+
+The pack-level `default.png` renders for every game that has no art of its own.
+Replacing it is a small change with a wide effect, and it needs no `.info`
+edit if the new image is cut to the viewport the old one used.
+
+**Source picture.** Any straight-on picture of a monitor surround works. The
+screen must be one flat `#00FF00` area with no reflections or gradients, and
+nothing else in the picture may be green. With an image model, say exactly
+that, and ask for a 16:9 frame.
+
+**Convert.** Read the four margins from the current `default.info`, then:
+
+```bash
+python3 make_bezel_from_green.py source.png default.png <left> <top> <right> <bottom>
+python3 bezel_preview.py some-game-screenshot.png <left> <top> <right> <bottom> default.png
+```
+
+The first script scales the picture so the green box lands exactly on the
+viewport, turns it transparent, and removes the green fringe. The second writes
+a mock and prints the corner cover.
+
+**Corner trap.** A realistic CRT opening has round corners. On a 1387x1062
+viewport a "natural" generated bezel hid 41 px along each corner diagonal, which
+cut the first letter off a credit counter. Asking for "nearly square corners,
+radius about 2 percent of the screen width" brought that down to 8 px. Check
+the number before you install; do not judge it by eye on a dark frame.
+
+**Side art trap.** The source picture is usually wider than what ends up on
+screen, because the side panels get cropped when the opening is scaled to the
+viewport. Stickers or text placed on the panels get cut off. To add side art,
+first make the plain bezel, composite it over flat green at the final
+resolution, and give that composite to the image model as the reference with
+the instruction to keep framing and positions exactly. The output then maps
+almost 1:1 and nothing is cropped.
+
+**Install and verify.** Back up the old `default.png`, copy the new one in with
+mode 644, launch a game that uses the fallback, and take a screenshot. Check
+that text in the picture corners is complete.
+
+## Standalone emulators: the bezel is an overlay, not a viewport
+
+For libretro cores the launcher writes a custom viewport from the `.info`, so
+the picture always sits inside the opening. For most standalone emulators the
+`.info` only decides whether the bezel is accepted. The bezel is then drawn as
+a full-screen overlay, and the launcher assumes the game fills a 4:3 box at
+full height (or 16:9 when the emulator is set to widescreen). Consequences:
+
+- A bezel with a 1387 px wide opening covers about 26 px on each side of a
+  1440 px wide picture.
+- An emulator "auto" aspect that picks 3:2 for progressive output draws 1620 px
+  wide, and the bezel covers much more.
+
+Fix per system:
+
+1. Set the emulator's aspect option to 4:3 for that system in `batocera.conf`.
+2. Make a system bezel (`<pack>/systems/<system>.png` + `.info`) whose opening
+   is the 4:3 box. `reslice_bezel.py` nine-slices an existing bezel onto the
+   new opening, so the side panels and any art on them are not stretched:
+
+```bash
+python3 reslice_bezel.py default.png systems/<system>.png 240 0 240 0
+```
+
+Do not try to shrink the picture into a smaller opening with an emulator
+stretch or scale setting unless you screenshot the result. On one PCSX2-based
+arcade emulator a vertical stretch value below 100 made the game render in a
+small box in a screen corner.
+
 ## Mega-Bezel per-game cabinet art: a documented dead end
 
 Combining Mega-Bezel's photoreal CRT rendering with **per-game** cabinet-art

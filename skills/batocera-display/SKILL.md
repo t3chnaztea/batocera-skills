@@ -130,6 +130,31 @@ for the ROMs that *do* have real art. [scripts/snes-bezel-fallback.py](scripts/s
 is a ready-to-adapt implementation (idempotent, generates a marker block,
 backs up `batocera.conf`).
 
+### Make your own fallback bezel
+
+`<pack>/default.png` + `default.info` is the bezel every game without its own
+art gets, so one good file improves a lot of games. You can build one from any
+frontal picture of a monitor surround (a photo, a render, an image-model
+output) as long as the screen area is one flat chroma green.
+[scripts/make_bezel_from_green.py](scripts/make_bezel_from_green.py) scales the
+green area onto the viewport from the existing `.info` and cuts it to alpha, so
+the `.info` stays unchanged. [scripts/bezel_preview.py](scripts/bezel_preview.py)
+mocks the result over a game screenshot and prints how many pixels each corner
+hides. Keep the old `default.png` as a backup, then launch a game and
+screenshot it. The prompt rules and the corner trap are in
+[references/bezels.md](references/bezels.md).
+
+### Standalone emulators ignore the `.info` viewport
+
+Libretro cores place the picture from the `.info`. Most standalone emulators do
+not: the launcher draws the bezel as an overlay and assumes a 4:3 picture at
+full screen height (1440x1080 on a 1080p display). A bezel with a smaller
+opening then covers the picture edges, and a non-4:3 emulator ratio makes it
+worse. Fix it per system: set the emulator's own aspect option to 4:3 and give
+that system a bezel whose opening is the 4:3 box.
+[scripts/reslice_bezel.py](scripts/reslice_bezel.py) converts an existing bezel
+to the new opening without stretching the side art.
+
 ### Don't attempt per-game Mega-Bezel cabinet art
 
 Combining Mega-Bezel's photoreal CRT with per-game cabinet-art bezels is a known
