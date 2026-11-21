@@ -12,7 +12,7 @@ description: >-
   emulator-name vs rom-dir-name overclock scoping trap, ES event-hook frame
   cost, and hardware-tier detection (batocera-info / batocera-vulkan). Not for
   shader visual quality (batocera-display).
-compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
+compatibility: Requires SSH access to a Batocera host (tested on v41-v44).
 ---
 
 # Batocera Tuning

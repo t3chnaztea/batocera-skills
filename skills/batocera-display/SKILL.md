@@ -8,7 +8,7 @@ description: >-
   cropped/misaligned game viewports inside bezels. Covers why a shaderset seems
   invalid, why .info top values are not alpha coordinates, and why Mega-Bezel
   per-game art fails. Not for performance/framerate tuning (batocera-tuning).
-compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
+compatibility: Requires SSH access to a Batocera host (tested on v41-v44).
 ---
 
 # Batocera Display
@@ -143,6 +143,21 @@ mocks the result over a game screenshot and prints how many pixels each corner
 hides. Keep the old `default.png` as a backup, then launch a game and
 screenshot it. The prompt rules and the corner trap are in
 [references/bezels.md](references/bezels.md).
+
+### Seasonal fallback bezel
+
+Because the fallback is one file, it is also the cheapest place for a seasonal
+look: string lights in December, and the normal bezel back in January.
+[scripts/bezel_season.sh](scripts/bezel_season.sh) reads a season name from a
+state file and copies that season's files over the live ones. A season with no
+folder gets the default folder, so the normal bezel returns without a second
+script. Call it at boot and from a boot-service timer loop (see
+`batocera-maintenance`; there is no cron).
+
+Build the seasonal variant from the finished normal bezel: draw the decoration
+on top, then reuse the normal bezel's alpha channel, so the opening and the
+`.info` do not change. Do not send art that contains green (holly, green
+bulbs) through the chroma-key script. It cuts those pixels out with the screen.
 
 ### Standalone emulators ignore the `.info` viewport
 

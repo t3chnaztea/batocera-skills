@@ -10,7 +10,7 @@ description: >-
   maintenance). Covers
   sshpass, batocera.conf, EmulationStation, the ES HTTP API, and
   batocera-screenshot. Not for game recommendations.
-compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
+compatibility: Requires SSH access to a Batocera host (tested on v41-v44).
 ---
 
 # Batocera Ops
@@ -143,6 +143,15 @@ SCPB "root@$BATOCERA_HOST:/userdata/screenshots/$(SSHB 'ls -t /userdata/screensh
 # then Read /tmp/verify.png
 ```
 
+**Many games at once:** [scripts/launch_test.sh](scripts/launch_test.sh) runs
+this loop over a list on the box itself. It takes the screenshots at the times
+you give per game, saves the launch logs, and writes one result line per game.
+It has a time limit per game: one that does not stop gets SIGKILL and `hung=1`,
+and the run goes on. It will not start while a game is already running, and it
+can stop at quiet hours. Look at the screenshots yourself before you call a
+game working: "the process ran for 40 seconds" is also true for a black screen
+and for a "wrong region" error page.
+
 **Config assertions after a libretro launch:** the *actual* values RetroArch
 ran with are in
 `/userdata/system/configs/retroarch/retroarchcustom.cfg` and
@@ -161,6 +170,12 @@ edit took effect.
   clobbers live edits. Stop it (`/etc/init.d/S31emulationstation stop`) or use
   the SIGKILL-restart pattern in the emulationstation reference. Config edits to
   `batocera.conf` do not need this; gamelist XML edits do.
+- **Every executable in `/userdata/system/scripts/` runs at each game start and
+  stop**, with the event name and game details as arguments. A helper script
+  you only meant to keep there runs too. Keep helpers somewhere else, or keep
+  them mode 644. If a file in that folder must stay executable (a udev helper,
+  for example), make it exit at once when the first argument is `gameStart` or
+  `gameStop`.
 - **Check what ES actually lists** via the API:
   `SSHB "curl -s http://127.0.0.1:1234/systems/<system>/games"` (returns
   name/path/hidden per entry).

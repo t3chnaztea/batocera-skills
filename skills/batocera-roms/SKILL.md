@@ -9,7 +9,7 @@ description: >-
   extensionless-ROM-in-zip failures, the 3DO/Opera no-m3u trap, cave3rd, and the
   es_systems_custom.cfg landmine. Not for shaders/bezels (batocera-display), or
   ROM directories renamed by a Batocera version upgrade (batocera-maintenance).
-compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
+compatibility: Requires SSH access to a Batocera host (tested on v41-v44).
 ---
 
 # Batocera ROMs
@@ -103,10 +103,45 @@ Workflow:
    `curl -s http://127.0.0.1:1234/systems/<system>/games` and count
    `hidden` entries.
 
+[scripts/set_hidden.py](scripts/set_hidden.py) does step 3 from a JSON map of
+file name to true or false (or `--all` for a whole system). It edits the text in
+place, so ES-written fields and entry order stay as they were, and it writes
+the backup itself. A quick hand-written regex for this job misses two cases the
+script handles: names with `&` (stored as `&amp;`), and entries where a tool
+appended a field on the same line as `</game>`.
+
+Good reasons to hide that are easy to forget: a game that needs a control the
+cabinet does not have (light gun, wheel, trackball, touch panel, card reader),
+and a system that is only there because a pack included it.
+
 Methodology detail (system-level HiddenSystems, cross-platform canonicalization
 / 1G1R, regional and format dedup) is in
 [references/curation.md](references/curation.md). It is method only — bring your
 own taste; there are no game lists here.
+
+## Scraping when the file name is not the game name
+
+Scrapers match on the ROM file name or its hash. Both fail for launcher files
+that carry a board ID or a short code instead of a title (arcade loader stubs,
+`.acgame`-style descriptors, ports). The ES scraper then skips the game or
+attaches the wrong one.
+
+Search by title instead. ScreenScraper has a title search endpoint
+(`jeuRecherche.php`, parameter `recherche`, optional `systemeid`) that returns
+the same game records as the file lookup, so the rest of a scraper (pick the
+text by language, pick the media by region, write the gamelist fields) does not
+change. Three rules from doing this on an arcade set:
+
+- Take the search text from the `<name>` in the gamelist, with the bracketed
+  region and version text removed. Keep a small override table for titles the
+  search does not find.
+- Search the arcade system first, then all systems. Many arcade games only have
+  a record under their console port.
+- **Dry-run and read every match before you write.** Title search returns the
+  nearest name, so a sequel, a "DX" revision, or a different game in the same
+  franchise can come back for the game you asked for. Put the wrong ones on a
+  skip list and add their art by hand (a cropped screenshot from your own
+  launch test works well as the `<image>`).
 
 ## Multi-disc games
 

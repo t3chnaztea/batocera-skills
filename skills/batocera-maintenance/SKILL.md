@@ -8,7 +8,7 @@ description: >-
   (v42 to v43 and similar) including the ROM-directory renames and post-upgrade
   checklist. Covers why there is no crond, the backup-before-upgrade doctrine,
   and catch-up scheduling. Not for performance tuning (batocera-tuning).
-compatibility: Requires SSH access to a Batocera host (tested on v41-v43).
+compatibility: Requires SSH access to a Batocera host (tested on v41-v44).
 ---
 
 # Batocera Maintenance
@@ -89,7 +89,8 @@ Major Batocera upgrades rename ROM directories, change the boot-service model,
 and swap emulators — each of which silently breaks things if you don't migrate.
 The v42→v43 migration (representative of the class) with the full rename table
 and a post-upgrade checklist is in
-[references/v42-to-v43.md](references/v42-to-v43.md). The short doctrine:
+[references/v42-to-v43.md](references/v42-to-v43.md). What v44 changed is in
+[references/v43-to-v44.md](references/v43-to-v44.md). The short doctrine:
 
 1. Full backup first (above).
 2. Upgrade.
