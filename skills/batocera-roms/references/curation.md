@@ -51,6 +51,24 @@ Between passes, verify counts via the ES API rather than trusting the edit:
 `curl -s http://127.0.0.1:1234/systems/<system>/games` and count hidden vs
 visible.
 
+## Audit before a seasonal un-hide
+
+Showing a set of games for one season (holiday games in December) means that
+you un-hide entries that an earlier curation pass hid. Audit the list first.
+
+- **Hidden games include duplicates.** The dedup passes hid the same game on
+  two or three systems. Un-hide one version per game and leave the others
+  hidden. Write the list as title, system, hidden state and the version you
+  picked, then review it before you apply it.
+- **A menu-hidden system stays out of the menu.** An entry that you un-hide in
+  a system from `HiddenSystems` is visible in the gamelist but nobody can reach
+  it. It does show inside a custom collection, so put the seasonal games in one
+  (see `batocera-ops` → emulationstation reference).
+
+Verify with the ES API: count the visible entries of your list per system, and
+compare the game count on the collection tile with the number of lines in the
+collection file.
+
 ## Favorites are a separate list
 
 The `<favorite>true</favorite>` flag and any "favorites" auto-collection are

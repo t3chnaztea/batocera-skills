@@ -4,7 +4,8 @@ description: >-
   Use when working on how games look on a Batocera cabinet: CRT and other
   shaders, shaderset resolution and per-game shader overrides, bezel/overlay
   artwork and alignment, generating missing .info sidecars, filtering
-  unusable bezels, pinning the display resolution, or diagnosing moire and
+  unusable bezels, seasonal bezels and boot splash clips, pinning the display
+  resolution, or diagnosing moire and
   cropped/misaligned game viewports inside bezels. Covers why a shaderset seems
   invalid, why .info top values are not alpha coordinates, and why Mega-Bezel
   per-game art fails. Not for performance/framerate tuning (batocera-tuning).
@@ -152,7 +153,9 @@ look: string lights in December, and the normal bezel back in January.
 state file and copies that season's files over the live ones. A season with no
 folder gets the default folder, so the normal bezel returns without a second
 script. Call it at boot and from a boot-service timer loop (see
-`batocera-maintenance`; there is no cron).
+`batocera-maintenance`; there is no cron). The same script swaps the boot
+splash and one seasonal collection tile; see
+[Seasonal boot splash](#seasonal-boot-splash) below.
 
 Build the seasonal variant from the finished normal bezel: draw the decoration
 on top, then reuse the normal bezel's alpha channel, so the opening and the
@@ -166,11 +169,81 @@ Two rules for image-model prompts came from a cobweb and blood-spatter variant:
 - Attach a reference picture for a texture that words describe badly. One
   photo of spatter fixed in one pass what three prompt rewrites did not.
 
+Four more came from a string-lights variant and a change of panel texture:
+
+- For a string of lights, ask for exactly one cord, drawn as one continuous
+  visible line from one image edge to the other. Then forbid by name a cord
+  that passes behind a panel, branches, crosses itself or has loose ends.
+  Without that the model draws cords that go everywhere and vanish.
+- Avoid perforated or dotted panel textures. Clusters of small holes trigger
+  trypophobia in some people. Avoid basket weave for the same reason: its dark
+  gaps read as a grid of holes.
+- For cloth, name the weave (for example diagonal twill) and say "stretched
+  flat and tight". Without those words the cloth comes out as wrinkled vinyl.
+- When an approved texture moves to another variant, attach the approved
+  picture as the texture reference. Do not describe it again in words.
+
 Change one element per pass and tell the model to keep the rest unchanged.
 To preview a season that is months away, copy its files over the live ones,
 launch a game, take a screenshot, then run the season script to put the
 current season back. Compare a checksum of the live file with the season file
 to confirm the restore.
+
+### Seasonal boot splash
+
+At boot Batocera plays a random `.mp4` from `/userdata/splash/`. Keep one file
+there, and the choice is yours. Do not replace the normal clip with new art.
+Keep it and add seasonal layers on top: snow, a string of lights, cobwebs.
+
+- **Use the screen blend.** Draw each layer as bright art on pure black. The
+  ffmpeg `screen` blend adds nothing where a layer is black, so a layer needs
+  no alpha channel, and a plain `.mp4` or `.png` works.
+- **Never put `eq=brightness` on a layer.** It lifts black to grey, and the
+  blend then puts a grey haze on the whole picture. Make the source art
+  brighter instead.
+- **Fade the layers in when the logo lands**, not at the first frame, so the
+  intro stays clean. Fade them out before the clip ends.
+- **Mix a quiet sound under the original audio** with `amix normalize=0`. The
+  default `normalize=1` halves the original track.
+
+[scripts/make_splash_layers.py](scripts/make_splash_layers.py) renders falling
+snow and two sounds (sleigh bells, thunder).
+[scripts/make_season_splash.sh](scripts/make_season_splash.sh) puts any number
+of layers on the normal clip:
+
+```bash
+python3 make_splash_layers.py layers --seconds 9
+SOUND=layers/bells.wav FADE_IN=2.0 \
+  sh make_season_splash.sh splash.mp4 splash-winter.mp4 layers/snow.mp4 lights.png
+```
+
+Play the result on the workstation first. Then put it at
+`splash/<season>/splash.mp4` in the season folder, and put the normal clip at
+`splash/default/splash.mp4`. `bezel_season.sh` copies the right one to
+`/userdata/splash/splash.mp4`.
+
+Verify with a real reboot, because nothing else plays the splash:
+
+```bash
+SSHB "md5sum /userdata/splash/splash.mp4 /userdata/system/season-bezel/splash/*/splash.mp4"
+SSHB "ls -l /userdata/system/logs/mpv.log; grep -i 'splash' /userdata/system/logs/mpv.log | tail -5"
+```
+
+The live file must have the checksum of the current season's file, and
+`mpv.log` must be newer than the reboot and name the file the boot player
+opened.
+
+**Seasonal collection tile.** `bezel_season.sh` can also add one custom
+collection to the ES menu for one season (`COLLECTION=<name>
+COLLECTION_SEASON=<season>`) and remove it afterwards. The trap: ES writes
+`es_settings.cfg` when it exits cleanly, so an edit made while ES runs is lost
+on the next clean exit. The script edits `CollectionSystemsCustom`, then sends
+SIGKILL to ES so the save handler never runs. It skips the pass while a game
+runs, because the kill would end that game. The collection needs theme art or
+its tile looks broken: see `batocera-ops` →
+[emulationstation reference](../batocera-ops/references/emulationstation.md).
+Verify with `grep CollectionSystemsCustom` on `es_settings.cfg` and one
+screenshot of the menu.
 
 ### Standalone emulators ignore the `.info` viewport
 

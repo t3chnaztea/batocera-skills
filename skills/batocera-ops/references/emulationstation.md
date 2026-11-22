@@ -112,3 +112,50 @@ Runs on the box; useful for launching and inspecting without a controller.
 
 This endpoint is a documented control surface, not synthetic input — but it
 takes over the screen, so don't use it while someone is playing.
+
+## Custom collections need theme art
+
+A custom collection is a text file,
+`/userdata/system/configs/emulationstation/collections/custom-<name>.cfg`, with
+one ROM path per line. ES shows it when `<name>` is in the comma-separated
+`CollectionSystemsCustom` value in `es_settings.cfg`. That is enough for the
+games to appear, but the tile has no background and no logo until the theme
+has art for `<name>`.
+
+A theme reads these files for a collection named `<name>`:
+
+- `<theme>/<name>/theme.xml`, a small file that includes the main theme. Copy
+  it from another collection's folder.
+- The theme's per-system art and logo files, named `<name>.<ext>`. The folders
+  and the number of sizes differ per theme.
+
+Find the exact paths in two ways. Use both, because a theme can read one name
+from several folders:
+
+```bash
+cd /userdata/themes/<theme>
+grep -rn 'system.theme' --include='*.xml' . | head -30   # every path built from the name
+find . -iname '<existing-collection>*'                    # the full set one collection has
+```
+
+Copy the set of an existing collection, rename each file to `<name>`, and then
+replace the pictures. Keep the pixel size and the file type of each one.
+
+**Check the tile without sending input.** Set `StartupSystem` in
+`es_settings.cfg` to `<name>` for one ES start. ES opens on that tile.
+
+```bash
+CFG=/userdata/system/configs/emulationstation/es_settings.cfg
+cp $CFG $CFG.pre-tile-check
+grep StartupSystem $CFG                  # note the old value
+# set value="<name>" on that line, then:
+kill -9 $(pgrep -f "^emulationstation ")
+sleep 25; batocera-screenshot
+cp $CFG.pre-tile-check $CFG              # put the old value back
+kill -9 $(pgrep -f "^emulationstation ")
+```
+
+Both restarts use SIGKILL for the reason at the top of this file. Check that
+no game runs first. Look at the screenshot for the background, the logo and
+the game count. If the count is lower than the number of lines in the `.cfg`,
+a path does not resolve: compare each line with the real file name.
