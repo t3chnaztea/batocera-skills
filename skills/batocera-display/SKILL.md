@@ -159,6 +159,19 @@ on top, then reuse the normal bezel's alpha channel, so the opening and the
 `.info` do not change. Do not send art that contains green (holly, green
 bulbs) through the chroma-key script. It cuts those pixels out with the screen.
 
+Two rules for image-model prompts came from a cobweb and blood-spatter variant:
+
+- Name each thing you do not want. "Dry cobwebs" still gave thick wet strands
+  until the prompt also said no drips, no runs and no hanging clumps.
+- Attach a reference picture for a texture that words describe badly. One
+  photo of spatter fixed in one pass what three prompt rewrites did not.
+
+Change one element per pass and tell the model to keep the rest unchanged.
+To preview a season that is months away, copy its files over the live ones,
+launch a game, take a screenshot, then run the season script to put the
+current season back. Compare a checksum of the live file with the season file
+to confirm the restore.
+
 ### Standalone emulators ignore the `.info` viewport
 
 Libretro cores place the picture from the `.info`. Most standalone emulators do

@@ -62,6 +62,10 @@ long-running work use `nohup … &` or `screen`/`tmux` if installed. Rapid
 reconnects can trip the SSH daemon's throttle (transient "Permission denied");
 wait a few seconds and retry rather than assuming the password is wrong.
 
+A `tar` stream from macOS adds an `._name` AppleDouble file beside every file
+that has extended attributes. In a ROM or media folder those show up as broken
+entries. Set `COPYFILE_DISABLE=1` for the `tar` command on the Mac.
+
 ## The filesystem model
 
 - **Rootfs is read-only.** You cannot persist edits to `/usr`, `/etc`, or

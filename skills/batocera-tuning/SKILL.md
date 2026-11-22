@@ -56,6 +56,27 @@ Measure, don't assume: a framerate overlay (`DrawFramerate=true` in
 `es_settings.cfg`) plus the `batocera-ops` screenshot loop lets you read fps on
 a specific tile remotely. Turn it back off when done.
 
+### Reading an idle machine
+
+Load average is a poor idle signal on these boxes. It counts threads in
+uninterruptible sleep, and a display driver worker that waits for a page flip
+(for example with the TV off) holds it near 1.0 while the CPU does nothing.
+Measure the real state:
+
+```bash
+SSHB 'head -1 /proc/stat; sleep 10; head -1 /proc/stat'          # idle column vs total
+SSHB 'ps -eo stat,args | awk "\$1 ~ /^D/"'                       # who is in D state
+SSHB 'f=/sys/class/powercap/intel-rapl:0/energy_uj; a=$(cat $f); sleep 10; echo $(( ($(cat $f)-a)/10000 )) mW'
+SSHB 'cat /sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count'
+```
+
+A package that draws a few watts and still reads hot has a heat-path problem
+(dust, old paste, a closed cabinet), not a software one. The throttle count is
+the number that matters: zero growth during normal play means the cooling is
+enough. Many mini PCs expose no fan sensor and no fan control to Linux (look
+for `pwm*` and `fan*` files under `/sys/class/hwmon/`); the firmware owns the
+fan curve and only the firmware setup screen changes it.
+
 **Do not** drive these tests with synthetic input (see `batocera-ops` doctrine).
 Ask the human to navigate, and read results from logs / screenshots / `/proc`.
 Also note: a governor re-assert (below) may fire ~60–90s after boot, so the first
