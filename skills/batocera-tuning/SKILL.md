@@ -4,7 +4,8 @@ description: >-
   Use when a Batocera cabinet feels slow, laggy, or stuttery, or when tuning
   performance: EmulationStation menu/carousel lag, a slow-since-boot frontend,
   CPU governor stuck in powersave, overclock or CPU-speed core options that seem
-  to do nothing, run-ahead / input latency, framerate that drops the longer
+  to do nothing, run-ahead / input latency, joystick polling rate
+  (usbhid.jspoll, 1000 Hz) on arcade encoders, framerate that drops the longer
   the machine runs, or a 3D-heavy game (PSX/PS2/Dreamcast/N64 class) that
   crashes or stutters — Vulkan errors in emulator logs, picking a rendering
   resolution or graphics backend the hardware can afford. Covers the diagnostic
@@ -193,3 +194,78 @@ and needs a core that supports save-states. Enable modestly
 back off if it introduces audio crackle or drops frames. On a weak cabinet iGPU,
 prefer 1 frame and reserve it for the systems where latency matters most (fighters,
 shmups) rather than globally.
+
+### Joystick polling: measure before you tune
+
+"Set `usbhid.jspoll=1` for 1000 Hz" is common advice for arcade encoders. On
+many cabinets it changes nothing. Measure first; it takes ten seconds and no
+input.
+
+**Read the real rate.** Most cheap encoders (the DragonRise "zero delay" board,
+USB id `0079:0006`, is the usual one) answer every poll with a report, even
+with hands off the controls. Count the reports on `hidraw`:
+
+```bash
+SSHB 'python3 - <<EOF
+import os, time, select, collections, glob
+for dev in sorted(glob.glob("/dev/hidraw*")):
+    fd = os.open(dev, os.O_RDONLY | os.O_NONBLOCK); ts = []
+    end = time.monotonic() + 3.0
+    while time.monotonic() < end:
+        if select.select([fd], [], [], 0.2)[0]:
+            try: os.read(fd, 64); ts.append(time.monotonic())
+            except BlockingIOError: pass
+    os.close(fd)
+    if len(ts) < 3: print(dev, "no reports while idle"); continue
+    gaps = collections.Counter(round((b - a) * 1000) for a, b in zip(ts, ts[1:]))
+    print(dev, "%.1f Hz" % ((len(ts) - 1) / (ts[-1] - ts[0])), "gap ms:", sorted(gaps.items()))
+EOF'
+```
+
+This is a passive read: it changes nothing and sends nothing. A gap of 8 ms is
+125 Hz, 1 ms is 1000 Hz. Do not trust the `interval` file in sysfs or `Ivl=`
+in the USB device list: both show what the device asks for, not what the host
+does. A device that reports only on change prints "no reports while idle"; for
+that one, read event timestamps while a person moves the stick.
+
+**Why the setting often does nothing.** `jspoll` changes the interval that the
+`usbhid` driver requests. An xHCI (USB 3) host controller ignores that request
+and takes the interval from the device's own endpoint descriptor. A low-speed
+encoder that asks for 10 ms gets 8 ms there, with or without `jspoll`. The
+setting only works on host controllers that honour the request (EHCI ports,
+some single-board computers), which is why reports of success are real and
+still do not transfer to your box. Check both facts before you spend time:
+
+```bash
+SSHB 'for d in /sys/bus/usb/devices/*/idVendor; do p=${d%/idVendor}; echo "$(cat $p/idVendor):$(cat $p/idProduct) speed=$(cat $p/speed) $(basename $p)"; done'
+SSHB 'dmesg | grep -iE "new (low|full)-speed USB device.*using"'    # xhci_hcd or ehci-pci
+SSHB 'cat /sys/module/usbhid/parameters/jspoll'                      # 0 = not set
+```
+
+`speed=1.5` is a low-speed device. If the encoders sit on `xhci_hcd`, expect no
+change. A two-minute test without a reboot settles it: write `1` to the
+`jspoll` parameter file, unbind and bind the encoder's interface under
+`/sys/bus/usb/drivers/usbhid/`, and run the measurement again. Do it at the
+menu, not in a game, because the joystick nodes go away for a second. Write
+`0` and rebind to undo it. Make the kernel command line change only after that
+test shows 1 ms gaps: the boot file edit is lost at every upgrade, and a bad
+line there can stop the boot.
+
+**How much it is worth when it works.** Published measurements of this encoder
+class put the gain from 1000 Hz polling at about 3 to 4 ms on average, with
+the spread unchanged, because the board's own scan and debounce loop is the
+larger delay. One frame at 60 Hz is 16.7 ms. A real improvement at the
+encoder needs a board that requests 1 ms in its own descriptor, which xHCI
+does honour.
+
+**Spend the effort here first, in this order:**
+
+1. **The TV's game mode.** Measured differences between game mode on and off
+   run from about 20 ms to over 100 ms on the same set. It is usually stored
+   per input, so set it while the cabinet's input is on screen. Most TVs do
+   not report picture settings over their network API, so a person has to look
+   at the menu once.
+2. **Run-ahead** (above): one frame is 16.7 ms on the systems that can afford
+   it. Check what is already set before you add keys:
+   `SSHB "grep -E 'runahead|run_ahead' /userdata/system/batocera.conf"`.
+3. Polling rate, if the measurement says the host honours it.

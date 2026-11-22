@@ -156,6 +156,51 @@ can stop at quiet hours. Look at the screenshots yourself before you call a
 game working: "the process ran for 40 seconds" is also true for a black screen
 and for a "wrong region" error page.
 
+**When `/launch` does nothing:** the ES API cannot start every file. For a
+system that ES shows inside a group tile, the call returns and no game starts.
+For a file format the core does not support, ES opens a warning dialog and
+waits, and every later `/launch` is ignored until ES restarts (see the
+emulationstation reference for how to spot both).
+[scripts/direct_launch.sh](scripts/direct_launch.sh) starts the game with
+`batocera-launch -system <system> -rom <path>` instead, which is the command
+ES itself runs on v44 (older versions name it differently:
+`grep -m1 '<command>' /usr/share/emulationstation/es_systems.cfg` shows
+yours). It borrows `XDG_RUNTIME_DIR` from the ES process so audio and
+the display work, sets the system volume to 0 and puts it back, takes
+screenshots at the times you give, and stops the emulator at the end:
+
+```bash
+SSHB 'bash /userdata/system/tools/direct_launch.sh nes "/userdata/roms/nes/<rom>" /userdata/system/test/run1 "20 45"'
+```
+
+Its result line says whether an emulator process was alive at each shot time.
+`batocera-launch` also gives a real exit code and a log (`<prefix>.launch.log`),
+so a format the core rejects shows up as an error instead of a silent dialog.
+Set `EMUS` to the process names of your standalone emulators, or the script
+cannot see or stop them.
+
+**From a recording to a gamelist video.** Give the script two more arguments
+(start second, length) and it records the screen with ffmpeg `x11grab` while
+the game runs. Useful for a game no scraper has a video for. The recording is
+the full screen with the bezel, so convert it on the box:
+
+```bash
+# crop to the game picture, scale to 480p, drop the audio track
+ffmpeg -i run1.rec.mp4 -vf "crop=1440:1080:240:0,scale=640:480" -an \
+  -c:v libx264 -crf 23 -pix_fmt yuv420p "/userdata/roms/<system>/videos/<name>.mp4"
+ffprobe -v error -show_entries stream=codec_type,width,height -of csv=p=0 "/userdata/roms/<system>/videos/<name>.mp4"
+```
+
+`crop=1440:1080:240:0` is a 4:3 picture centred on a 1080p screen; read the
+real opening from one screenshot if your bezel differs. `ffprobe` must print
+one line, `video,640,480`. Then add
+`<video>./videos/<name>.mp4</video>` to the game's entry in `gamelist.xml`
+(back the file up, and use the SIGKILL restart so ES does not write its old
+copy over the edit). Verify:
+`curl -s http://127.0.0.1:1234/systems/<system>/games` shows a `video` value
+for the game. Record 30 to 40 seconds of gameplay, not the boot logo: pick the
+start second from the screenshots of a first run.
+
 **Config assertions after a libretro launch:** the *actual* values RetroArch
 ran with are in
 `/userdata/system/configs/retroarch/retroarchcustom.cfg` and

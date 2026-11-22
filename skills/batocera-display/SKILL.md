@@ -238,12 +238,52 @@ collection to the ES menu for one season (`COLLECTION=<name>
 COLLECTION_SEASON=<season>`) and remove it afterwards. The trap: ES writes
 `es_settings.cfg` when it exits cleanly, so an edit made while ES runs is lost
 on the next clean exit. The script edits `CollectionSystemsCustom`, then sends
-SIGKILL to ES so the save handler never runs. It skips the pass while a game
-runs, because the kill would end that game. The collection needs theme art or
+SIGKILL to the ES binary so the save handler never runs (it matches the
+process by its exact command name, because the ES arguments change between
+starts). It skips the pass while a game runs, because the kill would end that
+game. The collection needs theme art or
 its tile looks broken: see `batocera-ops` →
 [emulationstation reference](../batocera-ops/references/emulationstation.md).
 Verify with `grep CollectionSystemsCustom` on `es_settings.cfg` and one
 screenshot of the menu.
+
+**Seasonal screensaver.** The video screensaver can play one folder instead
+of the game videos. Two settings in `es_settings.cfg` control it:
+`SlideshowScreenSaverCustomVideoSource` (`true` or `false`) and
+`SlideshowScreenSaverVideoDir` (the folder). If `grep` does not find both lines
+in the file, set a custom video folder once in the ES screensaver menu; the
+script changes a line and never adds one. Then keep one folder per
+season and fill it with **hard links** to videos you already have:
+
+```bash
+SSHB 'mkdir -p /userdata/system/season-bezel/screensaver/winter'
+SSHB 'ln "/userdata/roms/<system>/videos/<clip>.mp4" /userdata/system/season-bezel/screensaver/winter/'
+```
+
+A hard link is a second name for the same data. It uses no extra space, and it
+keeps working when the file in the source folder is renamed, moved or removed
+by a scraper run; a symlink would break. Both names must be on the same
+filesystem, which is true for everything under `/userdata`. `bezel_season.sh`
+switches the two settings: in a season that has a non-empty
+`screensaver/<season>/` folder the screensaver plays only that folder, and in
+every other season it plays the normal source again.
+
+The script changes ES settings the safe way, and the pattern is worth copying
+for any script that runs on a timer: **edit a copy, compare, then act.** It
+copies `es_settings.cfg` to `/tmp`, applies every edit to the copy, and
+compares the copy with the live file. Only when they differ does it replace
+the file and restart ES. A pass that finds nothing to do writes nothing and
+restarts nothing, so a 12-hour timer never interrupts the menu. Verify:
+
+```bash
+SSHB 'stat -c "%h %n" /userdata/system/season-bezel/screensaver/winter/* | head -3'   # link count 2
+SSHB 'grep -E "SlideshowScreenSaver(CustomVideoSource|VideoDir)" /userdata/system/configs/emulationstation/es_settings.cfg'
+SSHB 'sh /userdata/system/season-bezel/bezel_season.sh; tail -1 /userdata/system/season-bezel/season.log'
+```
+
+The second run of the script must add no log line. To see the result without
+waiting for the idle timer, take three screenshots a minute apart once the
+screensaver runs and match the frames to files in the season folder.
 
 ### Standalone emulators ignore the `.info` viewport
 
