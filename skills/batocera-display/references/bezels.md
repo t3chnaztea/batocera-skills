@@ -165,6 +165,19 @@ with the automatic (OpenGL) renderer and 0 of 6 with Vulkan, so set that
 system's graphics API to Vulkan. Test with several launches in a row and one
 screenshot each; a single good launch proves nothing.
 
+## Daphne / Singe (hypseus): the emulator owns the bezel
+
+`daphne.bezel` has no effect on v44. The hypseus generator declares that it
+handles bezels, so the common bezel code returns before it reads the key. The
+generator passes `-bezel <rom>.png` from
+`/userdata/system/configs/hypseus-singe/bezels/` and falls back to
+`default.png` there; it turns the bezel on by itself when a 4:3 video runs on a
+16:9 screen (`hypseus_bezels=0` turns it off). Batocera ships official art for
+many laserdisc games in `/usr/share/hypseus-singe/bezels/`, and the generator
+copies a share file over the user file of the same name whenever the share
+file is newer. Every upgrade restamps share files, so give a custom bezel a
+filename that is not in the share folder.
+
 ## Mega-Bezel per-game cabinet art: a documented dead end
 
 Combining Mega-Bezel's photoreal CRT rendering with **per-game** cabinet-art

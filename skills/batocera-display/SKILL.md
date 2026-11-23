@@ -285,6 +285,37 @@ The second run of the script must add no log line. To see the result without
 waiting for the idle timer, take three screenshots a minute apart once the
 screensaver runs and match the frames to files in the season folder.
 
+**A custom screensaver folder shows no bezel.** With
+`SlideshowScreenSaverCustomVideoSource=true`, ES plays files that belong to no
+game, and it draws decorations only for a game. To keep a bezel, burn it into
+each clip: scale the clip into the bezel opening with
+`force_original_aspect_ratio=decrease`, pad to the screen size, and overlay the
+bezel PNG (or a looping RGBA `.mov` for animated lights) with ffmpeg. For a
+lightning effect, copy real timing: 2 to 4 strobes about 100 ms apart (real
+return strokes are about 60 ms apart; 30 fps cannot show that), each a
+one-frame jump to peak with a fast decay, then a slower glow of about 0.4 s,
+irregular gaps of several seconds, and a dim, cool bezel between strikes. A
+pulse on one spot reads as a candle, not lightning. Keep full-area flashes
+under 3 per second (photosensitivity guidance). Put
+`scale=trunc(iw*sar/2)*2:ih,setsar=1` first, or clips with non-square pixels
+(many arcade captures) come out stretched. Encode H.264 with `+faststart` and no
+audio. ES re-reads the folder on every pick, so new files need no restart. When
+you copy from a Mac with `tar`, macOS adds `._<name>` files; move them out of
+the folder, because ES can pick them. Then a hard link no longer works for that
+folder: every new clip has to go through the same burn step, so wrap it in one
+intake script.
+
+**Game-video screensaver bezel.** With game videos and
+`ScreenSaverDecorations=systems` (the default), ES uses `global.bezel` only if
+the set name starts with `default`. For any other set it draws the set named
+`default`, which is the stock Batocera bezel. ES lists `/userdata/decorations`
+before the stock sets, so a user folder `/userdata/decorations/default/` with
+your own `default.png` and `default.info` replaces it. Set
+`ScreenSaverDecorations=none` if you want no bezel at all. To check it, set a short `ScreenSaverTime` and take screenshots over
+SSH. On v44, `batocera-screenshot` needs `export DISPLAY=:0
+XAUTHORITY=/var/lib/.Xauthority` first, or x11grab fails with "Authorization
+required" and no file is written.
+
 ### Standalone emulators ignore the `.info` viewport
 
 Libretro cores place the picture from the `.info`. Most standalone emulators do
