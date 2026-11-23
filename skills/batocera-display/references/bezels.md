@@ -165,6 +165,16 @@ with the automatic (OpenGL) renderer and 0 of 6 with Vulkan, so set that
 system's graphics API to Vulkan. Test with several launches in a row and one
 screenshot each; a single good launch proves nothing.
 
+## v44: vertical-game data moved
+
+v44 moved the vertical-game list from `configgen/data/special/<sys>.csv` to
+`/usr/share/batocera/launch/data/special/<sys>.toml`, so tools that read the
+csv find nothing. v44 also looks for `systems/<sys>-<90|270>.png` and
+`default-<90|270>.png` for vertical games. A per-game `ratio=3/4` still
+overrides the `.info` viewport, so remove it once a vertical game gets
+vertical per-game art. A bezel PNG with no `.info` gets no fixed viewport;
+write one for every PNG you add.
+
 ## Daphne / Singe (hypseus): the emulator owns the bezel
 
 `daphne.bezel` has no effect on v44. The hypseus generator declares that it
